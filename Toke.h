@@ -90,7 +90,8 @@ void FreeTokenArray(TokenArray* ta);
 //Frees memory taken by the token type array
 void FreeTokenTypeArray(TokenTypeArray* ta);
 bool HasType(TokenTypeArray*ta,TokenType tt);
-
+//Tests if the name passed matches any of the token type names in the array
+inline bool HasTypeName(TokenTypeArray *ta, T_String str); 
 ////////////////START OF IMPLEMENTATION//////////////////////
 
 
@@ -318,6 +319,14 @@ inline bool HasType(TokenTypeArray *ta, TokenType tt)
 {
     for(int i=0;i<ta->size;i++){
         if (strcmp(ta->array[i].name.str,tt.name.str)==0&&ta->array[i].token==tt.token)
+            return true;
+    }
+    return false;
+}
+inline bool HasTypeName(TokenTypeArray *ta, T_String str)
+{
+    for(int i=0;i<ta->size;i++){
+        if (strcmp(ta->array[i].name.str,str.str)==0)
             return true;
     }
     return false;
