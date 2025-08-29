@@ -90,6 +90,9 @@ void FreeTokenArray(TokenArray* ta);
 void FreeTokenTypeArray(TokenTypeArray* ta);
 bool HasType(TokenTypeArray*ta,TokenType tt);
 
+////////////////START OF IMPLEMENTATION//////////////////////
+
+
 void AddChar(T_String *str, char c)
 {
     str->free=true;
