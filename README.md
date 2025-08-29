@@ -1,7 +1,8 @@
 # Toke
 <img style="display: block; 
            margin-left: auto;
-           margin-right: auto;width:50%;height:auto;
+           margin-right: auto;
+           height:50%;
            align-self=center;
            backdrop-filter:invert(100%);
            " 
