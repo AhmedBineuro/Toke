@@ -2,7 +2,8 @@
 <img style="display: block; 
            margin-left: auto;
            margin-right: auto;
-           height:50%;
+           width:50%;
+           height:auto;
            align-self=center;
            backdrop-filter:invert(100%);
            " 
