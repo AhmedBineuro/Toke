@@ -53,6 +53,7 @@ typedef struct
 //Adds a character to the end of the string
 void AddChar(T_String *str, char c);
 //Sets the string to the value passed
+T_String GetString(const char* str);
 void SetString(T_String *str, char *value);
 void PrintString(const T_String *str);
 
@@ -111,6 +112,8 @@ void AddChar(T_String *str, char c)
 }
 void SetString(T_String *str, char *value)
 {
+    if(value==NULL)
+        return;
     str->free=false;
     int size = 0;
     while (value[size] != '\0')
@@ -118,6 +121,14 @@ void SetString(T_String *str, char *value)
     str->str = value;
     str->size = size;
     str->capacity = size + 1;
+}
+T_String GetString(const char* str){
+    T_String out;
+    SetString(&out,"");
+    if(str==NULL)
+        return out;
+    SetString(&out,str);
+    return out;
 }
 void PrintString(const T_String *str)
 {
