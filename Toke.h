@@ -89,9 +89,12 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokenTypes);
 void FreeTokenArray(TokenArray* ta);
 //Frees memory taken by the token type array
 void FreeTokenTypeArray(TokenTypeArray* ta);
+
 bool HasType(TokenTypeArray*ta,TokenType tt);
 //Tests if the name passed matches any of the token type names in the array
-inline bool HasTypeName(TokenTypeArray *ta, T_String str); 
+bool HasTypeName(TokenTypeArray *ta, T_String str);
+bool HasToken(TokenArray *ta, Token tt);
+bool HasTokenText(TokenArray *ta, T_String str); 
 ////////////////START OF IMPLEMENTATION//////////////////////
 
 
@@ -327,6 +330,24 @@ inline bool HasTypeName(TokenTypeArray *ta, T_String str)
 {
     for(int i=0;i<ta->size;i++){
         if (strcmp(ta->array[i].name.str,str.str)==0)
+            return true;
+    }
+    return false;
+}
+inline bool HasToken(TokenArray *ta, Token tt)
+{
+    for(int i=0;i<ta->size;i++){
+        if (strcmp(ta->array[i].str.str,tt.str.str)==0 &&
+        strcmp(ta->array[i].type.name.str,tt.type.name.str)==0 &&
+        ta->array[i].type.token==tt.type.token)
+            return true;
+    }
+    return false;
+}
+inline bool HasTokenText(TokenArray *ta, T_String str)
+{
+    for(int i=0;i<ta->size;i++){
+        if (strcmp(ta->array[i].str.str,str.str)==0)
             return true;
     }
     return false;
