@@ -1,4 +1,9 @@
 # Toke
+<img style="display: block; 
+           margin-left: auto;
+           margin-right: auto;width:50%;height:auto;
+           align-self=center;" 
+src="./icon.svg"/>
 
 ## What is Toke?
 
