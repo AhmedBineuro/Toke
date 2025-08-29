@@ -54,6 +54,7 @@ int main(){
     FreeTokenArray(&ta);
     FreeTokenTypeArray(&tta);
     
-    fclose(f);
+    if(f!=NULL)
+        fclose(f);
     return 0;
 }

@@ -229,10 +229,7 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
         return ta;
 
     TokenType tt;
-    tt.name.str = "Identifier";
-    tt.name.size = 10;
-    tt.name.capacity = 11; // Account for null terminator
-    tt.token = '\0';
+    SetString(&tt.name,"Identifier");
     if(!HasType(tokentypes,tt))
         AddTokenType(tokentypes, tt);
     FitTokenTypeArray(tokentypes);
@@ -292,14 +289,16 @@ void FreeTokenArray(TokenArray* ta){
         if(ta->array[i].type.name.free)
             free(ta->array[i].type.name.str);
     }
-    free(ta->array);
+    if(ta->size!=0)
+        free(ta->array);
 }  
 void FreeTokenTypeArray(TokenTypeArray* ta){
     for(int i=0;i<ta->size;i++){
         if(ta->array[i].name.free)
             free(ta->array[i].name.str);
     }
-    free(ta->array);
+    if(ta->size!=0)
+        free(ta->array);
 }
 inline bool HasType(TokenTypeArray *ta, TokenType tt)
 {
