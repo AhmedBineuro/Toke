@@ -78,7 +78,8 @@ bool IsReservedToken(TokenTypeArray *ta, char c);
  * @brief Function that gets the type match of a character
  * @returns TokenType with type (Identifier by default)
  */
-TokenType GetMatch(TokenTypeArray*ta,char c);
+TokenType GetTypeMatch(TokenTypeArray*ta,char c);
+Token GetTokenMatch(TokenArray*ta,T_String str);
 /**
  * @brief Function to tokenize file
  * @returns TokenArray filled with tokens
@@ -223,7 +224,7 @@ bool IsReservedToken(TokenTypeArray *ta, char c)
     }
     return false;
 }
-TokenType GetMatch(TokenTypeArray*ta,char c){
+TokenType GetTypeMatch(TokenTypeArray*ta,char c){
     for (int i = 0; i < ta->size; i++)
     {
         if (ta->array[i].token == c && (strcmp(ta->array[i].name.str, "Identifier") != 0))
@@ -235,6 +236,23 @@ TokenType GetMatch(TokenTypeArray*ta,char c){
     SetString(&tt.name,"Identifier");
     tt.token='\0';
     return tt;
+}
+Token GetTokenMatch(TokenArray*ta,T_String str){
+        for (int i = 0; i < ta->size; i++)
+    {
+        if (strcmp(ta->array[i].str.str,str.str)==0)
+        {
+            return ta->array[i];
+        }
+    }
+    Token t;
+    t.str=str;
+    TokenType tt;
+    SetString(&tt.name,"Identifier");
+    tt.token='\0';
+    t.type=tt;
+    t.lineNumber=0;
+    return t;
 }
 
 TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
@@ -262,7 +280,7 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
             continue;
         }
         if(c==' ') continue;
-        t.type=GetMatch(tokentypes,c);
+        t.type=GetTypeMatch(tokentypes,c);
         if (strcmp(t.type.name.str,"Identifier")!=0)
         {
             AddChar(&t.str, c);
@@ -292,7 +310,7 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
                 tempStr[0]=c;
                 tempStr[1]='\0';
                 SetString(&t.str,tempStr);
-                t.type=GetMatch(tokentypes,c);
+                t.type=GetTypeMatch(tokentypes,c);
             }  
         }
         t.lineNumber = line;
