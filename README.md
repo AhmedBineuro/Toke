@@ -3,7 +3,7 @@
            margin-left: auto;
            margin-right: auto;width:50%;height:auto;
            align-self=center;
-           backdrop-filter:inver();
+           backdrop-filter:invert(100%);
            " 
 src="./icon.svg"/>
 
