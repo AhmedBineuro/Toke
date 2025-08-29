@@ -5,7 +5,7 @@
            align-self=center;
            backdrop-filter:invert(100%);
            " 
-src="./icon.svg"/>
+src="./TokeImg.png" alt="Toke Icon" />
 
 ## What is Toke?
 
