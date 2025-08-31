@@ -55,3 +55,12 @@ tta.size=0;
     FreeTokenTypeArray(&tta);
 ```
 **Check the example in **`example/example.c`** where I try to parse an html file for a more "real life" application**
+
+## Todo:
+- [ ] String based Tokenization _(i.e. custom tokens can be whole strings not just characters)_
+- [ ] Further simplified and abstracted Api
+           - [ ] 'Context' struct
+           - [ ] 'InitContext' Function
+           - [ ] 'IncludeToken' Function
+           - [ ] 'FreeContext' Function
+          
