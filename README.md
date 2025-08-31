@@ -59,6 +59,7 @@ tta.size=0;
 ## Todo:
 - [ ] String based Tokenization _(i.e. custom tokens can be whole strings not just characters)_
 - [ ] Further simplified and abstracted Api
+
            - [ ] 'Context' struct
            - [ ] 'InitContext' Function
            - [ ] 'IncludeToken' Function
