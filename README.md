@@ -9,6 +9,8 @@
            " 
 src="./TokeImg.png" alt="Toke Icon" />
 
+## [Toke Introduction Video](https://www.youtube.com/watch?v=hjOIkNJAsTw&ab_channel=DynamicBineuro)
+
 ## What is Toke?
 
 Toke is a small and simple tokenizer for text parsing purposes. The entire tokenizer is in the header file that you can easily include in your project.
