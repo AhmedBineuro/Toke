@@ -52,3 +52,10 @@ Context* CTX=CreateContext();
     FreeContext(CTX);
 ```
 **Check the example in **`example/example.c`** where I try to parse an html file for a more "real life" application**
+
+## Todo
+- [ ] Tokenizing using regular expressions
+  - [ ] Maybe make some easier to understand and create than regular expressions
+- [ ] Optimize
+  - [ ] Collapse `TokenType` and `Token` into a single struct
+  - [ ] Reduce redundant type computations
