@@ -1,4 +1,4 @@
-# Toke
+# <em style="color:purple;">Toke</em>
 <img style="display: block; 
            margin-left: auto;
            margin-right: auto;
@@ -11,56 +11,43 @@ src="./TokeImg.png" alt="Toke Icon" />
 
 ## [Toke Introduction Video](https://www.youtube.com/watch?v=hjOIkNJAsTw&ab_channel=DynamicBineuro)
 
-## What is Toke?
+## What is <em style="color:purple;">Toke</em>?
 
 Toke is a small and simple tokenizer for text parsing purposes. The entire tokenizer is in the header file that you can easily include in your project.
 
-## What can you do with Toke?
+## What can you do with <em style="color:purple;">Toke</em>?
 
-With Toke, you can tokenize special characters by adding them to a `TokenTypeArray` to specify their name and character. Toke will automatically add a `TokenType` called `Identifier` with a token of `'\0'`  that will encompass any other remaining text or characters. Toke automatically consumes any whitespace and new line characters but it will keep count of which token belonged to which line.
+With Toke, you can tokenize special characters and strings by adding them to context using the`IncludeToken` function to specify their name and character/string. Toke will automatically add a `TokenType` called `Identifier` with a token of `'\0'`  that will encompass any other remaining text or characters. Toke automatically consumes any whitespace and new line characters but it will keep count of which token belonged to which line.
+
+## <em style="color:rgb(0, 176, 123);">What's new with Toke?</em>
+
+A new and simplified context-based API containing only 4 functions! With this new API you won't have to worry about setting array sizes or remembering to initialize and free specific variables.  
 
 ## How to use Toke?
 
-Toke can be used with 5 simple steps:
-1. Create a `TokenTypeArray` and set it's size to zero.
+Toke can be used with 4 simple steps:
+1. Initialize the context
 ```C
-TokenTypeArray tta;
-tta.size=0;
-```
-**Setting the size to 0 is essential in preventing undefined behaviour when it comes to sizing up the array**
-
-2.  Define the token types using a `TokenType` variable
-```C
-    TokenType tt;
-    SetString(&tt.name,"OPEN TAG"); //Set the name of the token
-    tt.token='<'; //This assignment sets the character the Toke will compare against 
+InitContext();
 ```
 
-3. Add the token to your `TokenTypeArray`
+2.  Include your tokens
 ```C
-    //The token type is passed by value so you can reuse the TokenType variable
-    AddTokenType(&tta,tt); //Safe add function
+    IncludeToken("OPEN TAG","<");
+    IncludeToken("CLOSE TAG",">");
+    IncludeToken("SLASH","/");
+    IncludeToken("ASSIGNMENT","=");
+    IncludeToken("QUOTATION","\"");
+    IncludeToken("SEMICOLON",";");
 ```
-4. Open your file and pass it to the `Tokenize` function along with the `TokenTypeArray` you created
+
+3. Tokenize the file!
 ```C
-    FILE* f=fopen("index.html","r");
-    
-    //Pass the file pointer and a pointer to the token type array
-    //The function return a token array with all the elements tokens in it!
-    TokenArray ta=Tokenize(f,&tta);
+    TokenArray* ta=TokenizeFile("./index.html");
 ```
-5. Free the memory you used after you're done using the tokens and token types!
-```
-    FreeTokenArray(&ta);
-    FreeTokenTypeArray(&tta);
+4. Free the context once you're done!
+```C
+    FreeContext();
 ```
 **Check the example in **`example/example.c`** where I try to parse an html file for a more "real life" application**
-
-## Todo:
-- [ ] String based Tokenization _(i.e. custom tokens can be whole strings not just characters)_
-- [ ] Further simplified and abstracted Api
-  - [ ] `Context` struct
-  - [ ] `InitContext` Function
-  - [ ] `IncludeToken` Function
-  - [ ] `FreeContext` Function
           

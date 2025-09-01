@@ -6,55 +6,25 @@
  */
 
 int main(){
-    //The token type array will hold the custom characters we are trying to tokenize 
-    TokenTypeArray tta;
-    TokenType tt;
-    //Setting the size to 0 is important for proper array size expansion and to prevent undefined behaviour
-    tta.size=0;
-    
-    //Here are the three operations to add a custom character to tokenize
-    SetString(&tt.name,"OPEN TAG");
-    tt.token='<'; //This assignment sets the character the Toke will compare against 
-    AddTokenType(&tta,tt); //Safe add function
-    
-    SetString(&tt.name,"CLOSE TAG");
-    tt.token='>';
-    AddTokenType(&tta,tt);
-    
-    SetString(&tt.name,"SLASH");
-    tt.token='/';
-    AddTokenType(&tta,tt);
-    
-    SetString(&tt.name,"QUOTATION");
-    tt.token='\"';
-    AddTokenType(&tta,tt);
-    
-    SetString(&tt.name,"ASSIGNMENT");
-    tt.token='=';
-    AddTokenType(&tta,tt);
-    
-    SetString(&tt.name,"COLON");
-    tt.token=':';
-    AddTokenType(&tta,tt);
-    
-    SetString(&tt.name,"SEMICOLON");
-    tt.token=';';
-    AddTokenType(&tta,tt);
-    
-    
-    FILE* f=fopen("index.html","r");
 
-    //Pass the file pointer and a pointer to the token type array
-    TokenArray ta=Tokenize(f,&tta);
+    InitContext();
     
-    //This will print all the tokens and their types
-    PrintTokenArray(&ta);
+    //Adding the tokens
+    IncludeToken("OPEN TAG","<");
+    IncludeToken("CLOSE TAG",">");
+    IncludeToken("SLASH","/");
+    IncludeToken("ASSIGNMENT","=");
+    IncludeToken("QUOTATION","\"");
+    IncludeToken("SEMICOLON",";");
     
-    // Calling these functions is essential for preventing memory leaks
-    FreeTokenArray(&ta);
-    FreeTokenTypeArray(&tta);
-    
-    if(f!=NULL)
-        fclose(f);
+    //Getting the token array
+    TokenArray* ta=TokenizeFile("./index.html");
+    PrintTokenArray(ta);
+
+    // You can also get the results from the CTX variable
+    printf("\n----------------------\nHello from context\n----------------------\n");
+    PrintTokenArray(&CTX->tokens);
+
+    FreeContext();
     return 0;
 }
