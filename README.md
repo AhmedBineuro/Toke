@@ -26,28 +26,30 @@ A new and simplified context-based API containing only 4 functions! With this ne
 ## How to use Toke?
 
 Toke can be used with 4 simple steps:
-1. Initialize the context
+1. Create the context
 ```C
-InitContext();
+Context* CTX=CreateContext();
 ```
 
 2.  Include your tokens
 ```C
-    IncludeToken("OPEN TAG","<");
-    IncludeToken("CLOSE TAG",">");
-    IncludeToken("SLASH","/");
-    IncludeToken("ASSIGNMENT","=");
-    IncludeToken("QUOTATION","\"");
-    IncludeToken("SEMICOLON",";");
+    IncludeToken(CTX,"OPEN TAG","<");
+    IncludeToken(CTX,"CLOSE TAG",">");
+    IncludeToken(CTX,"SLASH","/");
+    IncludeToken(CTX,"ASSIGNMENT","=");
+    IncludeToken(CTX,"QUOTATION","\"");
+    IncludeToken(CTX,"SEMICOLON",";");
+    //String match example
+    IncludeToken(CTX,"HEADER 1","h1");
 ```
 
 3. Tokenize the file!
 ```C
-    TokenArray* ta=TokenizeFile("./index.html");
+    TokenArray* ta=TokenizeFile(CTX,"./index.html");
 ```
 4. Free the context once you're done!
 ```C
-    FreeContext();
+    FreeContext(CTX);
 ```
 **Check the example in **`example/example.c`** where I try to parse an html file for a more "real life" application**
           

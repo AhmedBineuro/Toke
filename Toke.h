@@ -56,11 +56,10 @@ typedef struct{
 
 
 
-Context* CTX=NULL;
-Context* InitContext();
-void IncludeToken(char* name,char* token);
-TokenArray* TokenizeFile(char* path);
-void FreeContext();
+Context* CreateConext();
+void IncludeToken(Context* CTX,char* name,char* token);
+TokenArray* TokenizeFile(Context* CTX,char* path);
+void FreeContext(Context* CTX);
 
 
 // T_String functions
@@ -113,16 +112,20 @@ bool HasToken(TokenArray *ta, Token tt);
 bool HasTokenText(TokenArray *ta, T_String str);
 ////////////////START OF IMPLEMENTATION//////////////////////
 
-Context* InitContext(){
-    CTX=(Context*)malloc(sizeof(Context));
+Context* CreateConext(){
+    Context* CTX=(Context*)malloc(sizeof(Context));
     CTX->tokens.size=0;
     CTX->tokenTypes.size=0;
+    return CTX;
 }
 
-void IncludeToken(char *name, char *token)
+void IncludeToken(Context* CTX,char *name, char *token)
 {
     if(CTX==NULL)
-        printf("Context not initialized, use InitContext function before adding tokens\n");
+    {
+        printf("Context not initialized, use CreateConext function before adding tokens\n");
+        return;
+    }
     TokenType tt;
     tt.name.size=0;
     SetString(&tt.name,name);
@@ -130,10 +133,13 @@ void IncludeToken(char *name, char *token)
     AddTokenType(&CTX->tokenTypes,tt);
 }
 
-TokenArray* TokenizeFile(char* path)
+TokenArray* TokenizeFile(Context* CTX,char* path)
 {
     if(CTX==NULL)
-        printf("Context not initialized, use InitContext function before tokenizing\n");
+    {
+        printf("Context not initialized, use CreateConext function before tokenizing\n");
+        return NULL;
+    }
     FILE* f=fopen(path,"r");
     CTX->tokens=Tokenize(f,&CTX->tokenTypes);
     if(f!=NULL)
@@ -141,8 +147,10 @@ TokenArray* TokenizeFile(char* path)
     return &CTX->tokens;
 }
 
-void FreeContext()
+void FreeContext(Context* CTX)
 {
+    if(CTX==NULL)
+        return;
     FreeTokenTypeArray(&CTX->tokenTypes);
     FreeTokenArray(&CTX->tokens);
     free(CTX);
