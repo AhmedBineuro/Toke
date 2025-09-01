@@ -52,4 +52,3 @@ Context* CTX=CreateContext();
     FreeContext(CTX);
 ```
 **Check the example in **`example/example.c`** where I try to parse an html file for a more "real life" application**
-          
