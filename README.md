@@ -56,6 +56,6 @@ Context* CTX=CreateContext();
 ## Todo
 - [ ] Tokenizing using regular expressions
   - [ ] Maybe make some easier to understand and create than regular expressions
-- [ ] Optimize
-  - [ ] Collapse `TokenType` and `Token` into a single struct
-  - [ ] Reduce redundant type computations
+- [X] Optimize
+  - [X] Collapse `TokenType` and `Token` into a single struct
+  - [X] Reduce redundant type computations

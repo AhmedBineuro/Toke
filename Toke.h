@@ -24,21 +24,8 @@ typedef struct
 
 typedef struct
 {
-    T_String name;
+    T_String type; // Can be a custom type but everything else will be either Identifier,Space, or New line
     T_String token;
-} TokenType;
-
-typedef struct
-{
-    TokenType *array;
-    size_t size;
-    size_t capacity;
-} TokenTypeArray;
-
-typedef struct
-{
-    TokenType type; // Can be a custom type but everything else will be either Identifier,Space, or New line
-    T_String str;
     size_t lineNumber; // Which line was it read from in the file
 } Token;
 
@@ -50,7 +37,7 @@ typedef struct
 } TokenArray;
 
 typedef struct{
-    TokenTypeArray tokenTypes;
+    TokenArray reservedTokens;
     TokenArray tokens;
 }Context;
 
@@ -74,40 +61,29 @@ bool IsEqual(T_String a,T_String b);
 // Add token into token array,
 void AddToken(TokenArray *ta, Token token);
 //Add token type into token type array
-void AddTokenType(TokenTypeArray *ta, TokenType token);
 void PrintToken(const Token *t);
-void PrintTokenType(const TokenType *t);
 
 //Shrinks string to size
 void FitString(T_String *str);
 //Shrinks token array to size
 void FitTokenArray(TokenArray *ta);
-//Shrinks token type array to size
-void FitTokenTypeArray(TokenTypeArray *ta);
 
 void PrintTokenArray(const TokenArray *ta);
-//Tests if the character is reserved and not an identifier
-bool IsReservedToken(TokenTypeArray *ta, T_String c);
 /**
  * @brief Function that gets the type match of a character
  * @returns TokenType with type (Identifier by default)
  */
-TokenType GetTypeMatch(TokenTypeArray*ta,T_String c);
 Token GetTokenMatch(TokenArray*ta,T_String str);
 /**
  * @brief Function to tokenize file
  * @returns TokenArray filled with tokens
  * */
-TokenArray Tokenize(FILE *f, TokenTypeArray *tokenTypes);
+TokenArray Tokenize(FILE *f, TokenArray *reservedTokens);
 
 //Frees memory taken by the token array
 void FreeTokenArray(TokenArray* ta);
-//Frees memory taken by the token type array
-void FreeTokenTypeArray(TokenTypeArray* ta);
-
-bool HasType(TokenTypeArray*ta,TokenType tt);
 //Tests if the name passed matches any of the token type names in the array
-bool HasTypeName(TokenTypeArray *ta, T_String str);
+bool HasType(TokenArray *ta, char* typeName);
 bool HasToken(TokenArray *ta, Token tt);
 bool HasTokenText(TokenArray *ta, T_String str);
 ////////////////START OF IMPLEMENTATION//////////////////////
@@ -115,7 +91,7 @@ bool HasTokenText(TokenArray *ta, T_String str);
 Context* CreateConext(){
     Context* CTX=(Context*)malloc(sizeof(Context));
     CTX->tokens.size=0;
-    CTX->tokenTypes.size=0;
+    CTX->reservedTokens.size=0;
     return CTX;
 }
 
@@ -126,11 +102,10 @@ void IncludeToken(Context* CTX,char *name, char *token)
         printf("Context not initialized, use CreateConext function before adding tokens\n");
         return;
     }
-    TokenType tt;
-    tt.name.size=0;
-    SetString(&tt.name,name);
-    SetString(&tt.token,token);
-    AddTokenType(&CTX->tokenTypes,tt);
+    Token t;
+    SetString(&t.type,name);
+    SetString(&t.token,token);
+    AddToken(&CTX->reservedTokens,t);
 }
 
 TokenArray* TokenizeFile(Context* CTX,char* path)
@@ -141,7 +116,7 @@ TokenArray* TokenizeFile(Context* CTX,char* path)
         return NULL;
     }
     FILE* f=fopen(path,"r");
-    CTX->tokens=Tokenize(f,&CTX->tokenTypes);
+    CTX->tokens=Tokenize(f,&CTX->reservedTokens);
     if(f!=NULL)
         fclose(f);
     return &CTX->tokens;
@@ -151,7 +126,6 @@ void FreeContext(Context* CTX)
 {
     if(CTX==NULL)
         return;
-    FreeTokenTypeArray(&CTX->tokenTypes);
     FreeTokenArray(&CTX->tokens);
     free(CTX);
 }
@@ -219,40 +193,13 @@ void AddToken(TokenArray *ta, Token token)
     ta->array[ta->size] = token;
     ta->size += 1;
 }
-void AddTokenType(TokenTypeArray *ta, TokenType tokentype)
-{
-    if(ta->size==0){
-        ta->capacity = 2;
-        ta->array = (TokenType *)malloc((sizeof(TokenType) * ta->capacity));
-    }
-    if (ta->size == ta->capacity)
-    {
-        ta->capacity *= 2;
-        ta->array = (TokenType *)realloc(ta->array, (sizeof(TokenType) * ta->capacity));
-    }
-    ta->array[ta->size] = tokentype;
-    ta->size += 1;
-}
 
-void PrintTokenType(const TokenType *t)
-{
-    printf("[Type]:");
-    PrintString(&t->name);
-    printf("\t[Character]:%s", t->token.str);
-}
 void PrintToken(const Token *t)
 {
-    PrintTokenType(&t->type);
-    printf("\n[Line]:%ld\t[Text]:",t->lineNumber);
-    PrintString(&t->str);
-}
-void FitTokenTypeArray(TokenTypeArray *ta)
-{
-    if (ta->size != ta->capacity)
-    {
-        ta->capacity = ta->size;
-        ta->array = (TokenType *)realloc(ta->array, (sizeof(TokenType) * ta->capacity));
-    }
+    printf("\n[Type]:");
+    PrintString(&t->type);
+    printf("\t[Line]:%ld\t[Text]:",t->lineNumber);
+    PrintString(&t->token);
 }
 void FitTokenArray(TokenArray *ta)
 {
@@ -270,49 +217,46 @@ void PrintTokenArray(const TokenArray *ta)
         printf("\n\n");
     }
 }
-bool IsReservedToken(TokenTypeArray *ta, T_String c)
+bool IsReservedToken(TokenArray *ta, T_String c)
 {
     for (int i = 0; i < ta->size; i++)
     {
-        if (IsEqual(ta->array[i].token,c) && (strcmp(ta->array[i].name.str, "Identifier") != 0))
+        if (IsEqual(ta->array[i].token,c) && (strcmp(ta->array[i].type.str, "Identifier") != 0))
         {
             return true;
         }
     }
     return false;
 }
-TokenType GetTypeMatch(TokenTypeArray*ta,T_String c){
+Token GetTypeMatch(TokenArray*ta,T_String c){
     for (int i = 0; i < ta->size; i++)
     {
-        if (IsEqual(ta->array[i].token,c) && (strcmp(ta->array[i].name.str, "Identifier") != 0))
+        if ((strcmp(ta->array[i].type.str, "Identifier") != 0)&&IsEqual(ta->array[i].token,c))
         {
             return ta->array[i];
         }
     }
-    TokenType tt;
-    SetString(&tt.name,"Identifier");
-    SetString(&tt.token,"");
+    Token tt;
+    SetString(&tt.type,"Identifier");
+    SetString(&tt.token,c.str);
     return tt;
 }
 Token GetTokenMatch(TokenArray*ta,T_String str){
         for (int i = 0; i < ta->size; i++)
     {
-        if (strcmp(ta->array[i].str.str,str.str)==0)
+        if (strcmp(ta->array[i].token.str,str.str)==0)
         {
             return ta->array[i];
         }
     }
     Token t;
-    t.str=str;
-    TokenType tt;
-    SetString(&tt.name,"Identifier");
-    SetString(&tt.token,"");
-    t.type=tt;
+    t.token=str;
+    SetString(&t.type,"Identifier");
     t.lineNumber=0;
     return t;
 }
 
-TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
+TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
 {
     int line = 1;
     TokenArray ta;
@@ -320,17 +264,20 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
     ta.capacity = 0;
     if (f == NULL)
         return ta;
-
-    TokenType tt;
-    SetString(&tt.name,"Identifier");
-    if(!HasType(tokentypes,tt))
-        AddTokenType(tokentypes, tt);
-    FitTokenTypeArray(tokentypes);
+    if(!HasType(reservedTokens,"Identifier"))
+    {
+        Token t;
+        SetString(&t.type,"Identifier");
+        SetString(&t.token,"\0");
+        t.lineNumber=-1;
+        AddToken(reservedTokens, t);
+    }
+    FitTokenArray(reservedTokens);
     char c;
     while ((c = fgetc(f)) != EOF)
     {
         Token t;
-        SetString(&t.str, "");
+        SetString(&t.token, "");
         if (c == '\n')
         {
             line += 1;
@@ -340,17 +287,19 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
         T_String tok;
         tok.size=0;
         AddChar(&tok,c);
-        t.type=GetTypeMatch(tokentypes,tok);
-        if (strcmp(t.type.name.str,"Identifier")!=0)
+        t=GetTypeMatch(reservedTokens,tok);
+        if (strcmp(t.type.str,"Identifier")!=0)
         {
-            AddChar(&t.str, c);
+            t.token.size=0;
+            AddChar(&t.token, c);
         }
         else
         {
             bool endReserved=false;//Used to indicate if the end of the current Identifier is a reserved character
             T_String s;
             s.size=0;
-            TokenType endToken; //Is used in case the string ends with a reserved token
+            Token endToken; //Is used in case the string ends with a reserved token
+            SetString(&t.token,"");
             while (c!= EOF && c!= ' ' && c != '\n')
             {
                 SetString(&s,"");
@@ -360,27 +309,23 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
                     line++;
                     break;
                 }
-                endToken=GetTypeMatch(tokentypes, s);
-                if(strcmp(endToken.name.str,"Identifier")!=0)
+                endToken=GetTypeMatch(reservedTokens, s);
+                if(strcmp(endToken.type.str,"Identifier")!=0)
                 {
                     endReserved=true;
                     break;
                 }
-                AddChar(&t.str, c);
+                AddChar(&t.token, c);
                 c = fgetc(f);
             }
-            TokenType tempType = GetTypeMatch(tokentypes,t.str);
-            if(strcmp(tempType.name.str,"Identifier")!=0){
-                t.type=tempType;
+            Token tempType = GetTypeMatch(reservedTokens,t.token);
+            if(strcmp(tempType.type.str,"Identifier")!=0){
+                t=tempType;
             }
             if(endReserved){
                 t.lineNumber = line;
                 AddToken(&ta, t);
-                char* tempStr=(char*) malloc(2*sizeof(char));
-                tempStr[0]=c;
-                tempStr[1]='\0';
-                SetString(&t.str,tempStr);
-                t.type=endToken;
+                t=endToken;
             }  
         }
         t.lineNumber = line;
@@ -390,44 +335,28 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
 }
 void FreeTokenArray(TokenArray* ta){
     for(int i=0;i<ta->size;i++){
-        if(ta->array[i].str.free)
-            free(ta->array[i].str.str);
-        if(ta->array[i].type.name.free)
-            free(ta->array[i].type.name.str);
+        if(ta->array[i].token.free)
+            free(ta->array[i].token.str);
+        if(ta->array[i].type.free)
+            free(ta->array[i].type.str);
     }
     if(ta->size!=0)
         free(ta->array);
 }  
-void FreeTokenTypeArray(TokenTypeArray* ta){
-    for(int i=0;i<ta->size;i++){
-        if(ta->array[i].name.free)
-            free(ta->array[i].name.str);
-    }
-    if(ta->size!=0)
-        free(ta->array);
-}
-inline bool HasType(TokenTypeArray *ta, TokenType tt)
+
+bool HasType(TokenArray *ta, char* typeName)
 {
     for(int i=0;i<ta->size;i++){
-        if (strcmp(ta->array[i].name.str,tt.name.str)==0&&IsEqual(ta->array[i].token,tt.token))
+        if (strcmp(ta->array[i].type.str,typeName))
             return true;
     }
     return false;
 }
-inline bool HasTypeName(TokenTypeArray *ta, T_String str)
+inline bool HasToken(TokenArray *ta, Token t)
 {
     for(int i=0;i<ta->size;i++){
-        if (strcmp(ta->array[i].name.str,str.str)==0)
-            return true;
-    }
-    return false;
-}
-inline bool HasToken(TokenArray *ta, Token tt)
-{
-    for(int i=0;i<ta->size;i++){
-        if (strcmp(ta->array[i].str.str,tt.str.str)==0 &&
-        strcmp(ta->array[i].type.name.str,tt.type.name.str)==0 &&
-        IsEqual(ta->array[i].type.token,tt.type.token))
+        if (strcmp(ta->array[i].type.str,t.type.str)==0 &&
+            IsEqual(ta->array[i].token,t.token))
             return true;
     }
     return false;
@@ -435,7 +364,7 @@ inline bool HasToken(TokenArray *ta, Token tt)
 inline bool HasTokenText(TokenArray *ta, T_String str)
 {
     for(int i=0;i<ta->size;i++){
-        if (strcmp(ta->array[i].str.str,str.str)==0)
+        if (strcmp(ta->array[i].token.str,str.str)==0)
             return true;
     }
     return false;
