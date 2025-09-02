@@ -350,6 +350,7 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
             bool endReserved=false;//Used to indicate if the end of the current Identifier is a reserved character
             T_String s;
             s.size=0;
+            TokenType endToken; //Is used in case the string ends with a reserved token
             while (c!= EOF && c!= ' ' && c != '\n')
             {
                 SetString(&s,"");
@@ -359,7 +360,8 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
                     line++;
                     break;
                 }
-                if(IsReservedToken(tokentypes, s))
+                endToken=GetTypeMatch(tokentypes, s);
+                if(strcmp(endToken.name.str,"Identifier")!=0)
                 {
                     endReserved=true;
                     break;
@@ -367,8 +369,9 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
                 AddChar(&t.str, c);
                 c = fgetc(f);
             }
-            if(IsReservedToken(tokentypes,t.str)){
-                t.type=GetTypeMatch(tokentypes,t.str);
+            TokenType tempType = GetTypeMatch(tokentypes,t.str);
+            if(strcmp(tempType.name.str,"Identifier")!=0){
+                t.type=tempType;
             }
             if(endReserved){
                 t.lineNumber = line;
@@ -377,7 +380,7 @@ TokenArray Tokenize(FILE *f, TokenTypeArray *tokentypes)
                 tempStr[0]=c;
                 tempStr[1]='\0';
                 SetString(&t.str,tempStr);
-                t.type=GetTypeMatch(tokentypes,s);
+                t.type=endToken;
             }  
         }
         t.lineNumber = line;

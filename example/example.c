@@ -17,7 +17,7 @@ int main(){
     IncludeToken(CTX,"SEMICOLON",";");
     //String matching example
     IncludeToken(CTX,"HEADER 1","h1");
-    
+
     //Getting the token array
     TokenArray* ta=TokenizeFile(CTX,"./index.html");
     PrintTokenArray(ta);
