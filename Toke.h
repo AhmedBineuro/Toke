@@ -50,6 +50,7 @@ void FreeContext(Context* CTX);
 
 
 // T_String functions
+T_String CreateString(size_t size);
 //Adds a character to the end of the string
 void AddChar(T_String *str, char c);
 //Sets the string to the value passed
@@ -130,21 +131,54 @@ void FreeContext(Context* CTX)
     free(CTX);
 }
 
+T_String CreateString(size_t size){
+    T_String str;
+    str.size=size;
+    str.capacity=size;
+    if(size==0)
+    {
+        str.str=NULL;
+        str.free=false;
+    }
+    else{
+        str.str= (char*)malloc(sizeof(char)*size);
+        str.free=true;
+    }
+    return str;
+
+}
 void AddChar(T_String *str, char c)
 {
-    str->free=true;
+    bool add=true;
     if(str->size==0){
+        str->size=0;
         str->capacity = 2;
         str->str = (char *)malloc((sizeof(char) * str->capacity));
     }
-    if (str->size + 1 == str->capacity)
+    else if(!str->free)
+    {
+        T_String s=CreateString(0);
+        for(int i=0;str->str[i]!='\0';i++){
+            AddChar(&s,str->str[i]);
+        }
+        AddChar(&s,c);
+        str->str=s.str;
+        str->size=s.size;
+        str->capacity=s.capacity;
+        add=false;
+    }
+    if (str->size + 1 >= str->capacity)
     {
         str->capacity *= 2;
         str->str = (char *)realloc(str->str, sizeof(char) * str->capacity);
     }
-    str->str[str->size] = c;
-    str->str[str->size + 1] = '\0';
-    str->size += 1;
+    str->free=true;
+    if(add)
+    {
+        str->str[str->size] = c;
+        str->str[str->size + 1] = '\0';
+        str->size += 1;
+    }
 }
 void SetString(T_String *str, char *value)
 {
