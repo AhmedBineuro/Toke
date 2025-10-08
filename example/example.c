@@ -15,9 +15,10 @@ int main(){
     IncludeToken(CTX,"ASSIGNMENT","=");
     IncludeToken(CTX,"QUOTATION","\"");
     IncludeToken(CTX,"SEMICOLON",";");
+    IncludeToken(CTX,"FLOAT","\0");
     //String matching example
     IncludeToken(CTX,"HEADER 1","h1");
-
+    IncludePostProcessingToken(CTX,"FLOAT",IsFloat);
     //Getting the token array
     TokenArray* ta=TokenizeFile(CTX,"./index.html");
     PrintTokenArray(ta);

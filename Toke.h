@@ -22,6 +22,7 @@ typedef struct
     bool free;
 } T_String;
 
+
 typedef struct
 {
     T_String type; // Can be a custom type but everything else will be either Identifier,Space, or New line
@@ -29,6 +30,20 @@ typedef struct
     size_t lineNumber; // Which line was it read from in the file
 } Token;
 
+typedef bool (* ft_ptr)(T_String);
+
+//A format based token
+typedef struct{
+    T_String name;
+    ft_ptr formatTest;
+}FormatToken;
+
+typedef struct
+{
+    FormatToken *array;
+    size_t size;
+    size_t capacity;
+} FormatTokenArray;
 typedef struct
 {
     Token *array;
@@ -39,12 +54,16 @@ typedef struct
 typedef struct{
     TokenArray reservedTokens;
     TokenArray tokens;
+    FormatTokenArray postprocTokens;
 }Context;
 
 
 
 Context* CreateConext();
+//Includes text based token
 void IncludeToken(Context* CTX,char* name,char* token);
+//Includes format based token
+void IncludePostProcessingToken(Context* CTX,char *name, ft_ptr formatValidator);
 TokenArray* TokenizeFile(Context* CTX,char* path);
 void FreeContext(Context* CTX);
 
@@ -57,12 +76,24 @@ void AddChar(T_String *str, char c);
 T_String GetString(char* str);
 void SetString(T_String *str, char *value);
 void PrintString(const T_String *str);
-bool IsEqual(T_String a,T_String b); 
+bool IsEqual(T_String a,T_String b);
+
+//Format tests
+bool IsFloat(T_String str);
+bool IsInteger(T_String str); 
+bool IsNumber(T_String str);
+bool IsHex(T_String str);
+bool IsAlphabetic(T_String str);
+bool IsAlphaNumeric(T_String str); 
 
 // Add token into token array,
 void AddToken(TokenArray *ta, Token token);
 //Add token type into token type array
 void PrintToken(const Token *t);
+
+//Add a format based token
+void AddFormatToken(FormatTokenArray *ta, FormatToken token);
+void FitFormatTokenArray(FormatTokenArray *ta);
 
 //Shrinks string to size
 void FitString(T_String *str);
@@ -75,6 +106,13 @@ void PrintTokenArray(const TokenArray *ta);
  * @returns TokenType with type (Identifier by default)
  */
 Token GetTokenMatch(TokenArray*ta,T_String str);
+
+/**
+ * @brief Function that gets the type match of a character based on the formatting
+ * @returns TokenType with type (Identifier by default)
+ */
+FormatToken GetFormatTokenMatch(FormatTokenArray*ta,T_String str);
+
 /**
  * @brief Function to tokenize file
  * @returns TokenArray filled with tokens
@@ -93,6 +131,7 @@ Context* CreateConext(){
     Context* CTX=(Context*)malloc(sizeof(Context));
     CTX->tokens.size=0;
     CTX->reservedTokens.size=0;
+    CTX->postprocTokens.size=0;
     return CTX;
 }
 
@@ -108,6 +147,17 @@ void IncludeToken(Context* CTX,char *name, char *token)
     SetString(&t.token,token);
     AddToken(&CTX->reservedTokens,t);
 }
+void IncludePostProcessingToken(Context* CTX,char *name, ft_ptr formatValidator){
+    if(CTX==NULL)
+    {
+        printf("Context not initialized, use CreateConext function before adding tokens\n");
+        return;
+    }
+    FormatToken ft;
+    SetString(&ft.name,name);
+    ft.formatTest=formatValidator;
+    AddFormatToken(&CTX->postprocTokens,ft);
+}
 
 TokenArray* TokenizeFile(Context* CTX,char* path)
 {
@@ -118,6 +168,15 @@ TokenArray* TokenizeFile(Context* CTX,char* path)
     }
     FILE* f=fopen(path,"r");
     CTX->tokens=Tokenize(f,&CTX->reservedTokens);
+    //Perform post processing typing
+    for(int i=0;i<CTX->tokens.size;i++){
+        //Only change the identifiers since everything else has been typed
+        if(strcmp(CTX->tokens.array[i].type.str,"Identifier")!=0)
+            continue;
+        FormatToken type=GetFormatTokenMatch(&CTX->postprocTokens,CTX->tokens.array[i].token);
+        if(strcmp(type.name.str,"Identifier")!=0)
+            CTX->tokens.array[i].type=type.name;
+    }
     if(f!=NULL)
         fclose(f);
     return &CTX->tokens;
@@ -227,6 +286,29 @@ void AddToken(TokenArray *ta, Token token)
     ta->array[ta->size] = token;
     ta->size += 1;
 }
+void AddFormatToken(FormatTokenArray *ta, FormatToken token)
+{
+    if(ta->size==0){
+        ta->capacity = 2;
+        ta->array = (FormatToken *)malloc((sizeof(FormatToken) * ta->capacity));
+    }
+    if (ta->size == ta->capacity)
+    {
+        ta->capacity *= 2;
+        ta->array = (FormatToken *)realloc(ta->array, (sizeof(FormatToken) * ta->capacity));
+    }
+    ta->array[ta->size] = token;
+    ta->size += 1;
+}
+
+inline void FitFormatTokenArray(FormatTokenArray *ta)
+{
+    if (ta->size != ta->capacity)
+    {
+        ta->capacity = ta->size;
+        ta->array = (FormatToken *)realloc(ta->array, (sizeof(FormatToken) * ta->capacity));
+    }
+}
 
 void PrintToken(const Token *t)
 {
@@ -255,38 +337,44 @@ bool IsReservedToken(TokenArray *ta, T_String c)
 {
     for (int i = 0; i < ta->size; i++)
     {
-        if (IsEqual(ta->array[i].token,c) && (strcmp(ta->array[i].type.str, "Identifier") != 0))
+        if(((ta->array[i].token.size==0)&&(strcmp(ta->array[i].type.str,"Identifier")!=0))
+        ||IsEqual(ta->array[i].token,c))
         {
             return true;
         }
     }
-    return false;
-}
-Token GetTypeMatch(TokenArray*ta,T_String c){
-    for (int i = 0; i < ta->size; i++)
-    {
-        if ((strcmp(ta->array[i].type.str, "Identifier") != 0)&&IsEqual(ta->array[i].token,c))
-        {
-            return ta->array[i];
-        }
-    }
-    Token tt;
-    SetString(&tt.type,"Identifier");
-    SetString(&tt.token,c.str);
-    return tt;
 }
 Token GetTokenMatch(TokenArray*ta,T_String str){
-        for (int i = 0; i < ta->size; i++)
+    for (int i = 0; i < ta->size; i++)
     {
-        if (strcmp(ta->array[i].token.str,str.str)==0)
+        if(IsEqual(ta->array[i].token,str))
         {
-            return ta->array[i];
+
+                return ta->array[i];
         }
     }
     Token t;
-    t.token=str;
     SetString(&t.type,"Identifier");
-    t.lineNumber=0;
+    t.token=str;
+    t.lineNumber=-1;
+    return t;
+}
+
+inline FormatToken GetFormatTokenMatch(FormatTokenArray *ta, T_String str)
+{
+    FormatToken t;
+    bool found=false;
+    for (int i = 0; i < ta->size; i++)
+    {
+        if(ta->array[i].formatTest!=NULL && ta->array[i].formatTest(str))
+        {
+                t.name = ta->array[i].name;
+                found=true;
+                break;
+        }
+    }
+    if(!found)
+        SetString(&t.name,"Identifier");
     return t;
 }
 
@@ -298,6 +386,7 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
     ta.capacity = 0;
     if (f == NULL)
         return ta;
+    // Add base identifier token
     if(!HasType(reservedTokens,"Identifier"))
     {
         Token t;
@@ -306,7 +395,6 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
         t.lineNumber=-1;
         AddToken(reservedTokens, t);
     }
-    FitTokenArray(reservedTokens);
     char c;
     while ((c = fgetc(f)) != EOF)
     {
@@ -317,11 +405,13 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
             line += 1;
             continue;
         }
+        // If it is white space skip to the next character
         if(c==' ') continue;
+
         T_String tok;
         tok.size=0;
         AddChar(&tok,c);
-        t=GetTypeMatch(reservedTokens,tok);
+        t=GetTokenMatch(reservedTokens,tok);
         if (strcmp(t.type.str,"Identifier")!=0)
         {
             t.token.size=0;
@@ -343,7 +433,8 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
                     line++;
                     break;
                 }
-                endToken=GetTypeMatch(reservedTokens, s);
+                //Check if the last fetched character is a reserved token and if so break to not add it to the string
+                endToken=GetTokenMatch(reservedTokens, s);
                 if(strcmp(endToken.type.str,"Identifier")!=0)
                 {
                     endReserved=true;
@@ -352,7 +443,7 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
                 AddChar(&t.token, c);
                 c = fgetc(f);
             }
-            Token tempType = GetTypeMatch(reservedTokens,t.token);
+            Token tempType = GetTokenMatch(reservedTokens,t.token);
             if(strcmp(tempType.type.str,"Identifier")!=0){
                 t=tempType;
             }
@@ -410,5 +501,77 @@ bool IsEqual(T_String a,T_String b){
         if(a.str[i]!=b.str[i])
             return false;
     return true;
+}
+inline bool IsNumber(T_String str)
+{
+    return IsInteger(str)||IsFloat(str);
+}
+inline bool IsInteger(T_String str){
+    for(int i=0;i<str.size;i++)
+    {
+        if(str.str[i]<'0'||str.str[i]>'9')
+            return false;
+    }
+    return true&&(str.size>0);
+}
+inline bool IsFloat(T_String str){
+    bool decimalFlag=false;
+    for(int i=0;i<str.size;i++)
+    {
+        if(str.str[i]=='.'){
+            //If we already encountered a decimal point, then having another one invalidates the number
+            if(decimalFlag)
+                return false;
+            decimalFlag=true;
+        }
+        else if(str.str[i]<'0'||str.str[i]>'9')
+            return false;
+    }
+    return true&&(str.size>0);
+}
+inline bool IsHex(T_String str){
+    
+    bool xFlag=false;
+    for(int i=0;i<str.size;i++)
+    {
+        if(str.str[i]=='x'||str.str[i]=='X'){
+            //If we already encountered an x, 
+            //then having another one invalidates the hex value
+            //Also confirm that the x occures either in the beginning or after a 0 only
+            if(xFlag || ( i!=0 && (i==1 && str.str[0]!='0')))
+                return false;
+            xFlag=true;
+        }
+        else if(
+            //Not in the numerical range
+            (str.str[i]<'0'||(str.str[i]>'9')) &&
+            //Not in the allowed uppercase alphabetical range
+            (str.str[i]<'A'||(str.str[i]>'F')&&
+            //Not in the allowed lowercase alphabetical range
+            (str.str[i]<'a'||(str.str[i]>'f'))))
+            return false;
+    }
+    
+    return true&&(str.size>0);
+}
+inline bool IsAlphabetic(T_String str){
+    
+    for(int i=0;i<str.size;i++)
+    {
+        if((str.str[i]<'A'||str.str[i]>'Z')&&(str.str[i]<'a'||str.str[i]>'z'))
+            return false;
+    }
+    return true&&(str.size>0);
+}
+inline bool IsAlphaNumeric(T_String str)
+{
+    for(int i=0;i<str.size;i++)
+    {
+        if( (str.str[i]<'0'||str.str[i]>'9')&&
+            (str.str[i]<'A'||str.str[i]>'Z')&&
+            (str.str[i]<'a'||str.str[i]>'z'))
+            return false;
+    }
+    return true&&(str.size>0);
 }
 #endif
