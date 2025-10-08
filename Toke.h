@@ -58,12 +58,12 @@ typedef struct{
 }Context;
 
 
-
+// Creates a fresh instance of a context
 Context* CreateConext();
 //Includes text based token
 void IncludeToken(Context* CTX,char* name,char* token);
 //Includes format based token
-void IncludePostProcessingToken(Context* CTX,char *name, ft_ptr formatValidator);
+void IncludeFormatToken(Context* CTX,char *name, ft_ptr formatValidator);
 TokenArray* TokenizeFile(Context* CTX,char* path);
 void FreeContext(Context* CTX);
 
@@ -147,7 +147,7 @@ void IncludeToken(Context* CTX,char *name, char *token)
     SetString(&t.token,token);
     AddToken(&CTX->reservedTokens,t);
 }
-void IncludePostProcessingToken(Context* CTX,char *name, ft_ptr formatValidator){
+void IncludeFormatToken(Context* CTX,char *name, ft_ptr formatValidator){
     if(CTX==NULL)
     {
         printf("Context not initialized, use CreateConext function before adding tokens\n");
