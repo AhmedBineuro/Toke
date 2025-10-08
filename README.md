@@ -17,11 +17,17 @@ Toke is a small and simple tokenizer for text parsing purposes. The entire token
 
 ## What can you do with <em style="color:purple;">Toke</em>?
 
-With Toke, you can tokenize special characters and strings by adding them to context using the`IncludeToken` function to specify their name and character/string. Toke will automatically add a `TokenType` called `Identifier` with a token of `'\0'`  that will encompass any other remaining text or characters. Toke automatically consumes any whitespace and new line characters but it will keep count of which token belonged to which line.
+With Toke, you can tokenize special characters and strings by adding them to context using the `IncludeToken` and the `IncludeFormatToken` functions to specify their name and character/string *(more on FormatTokens in [What's new with toke?](#whats-new-with-toke))*. Toke will automatically add a `TokenType` called `NULLTOK` with a token of `'\0'`  that will encompass any other remaining text or characters. Then, Toke will automatically consume any whitespace and new line characters but it will keep count of which token belonged to which line.
 
 ## <em style="color:rgb(0, 176, 123);">What's new with Toke?</em>
 
-A new and simplified context-based API containing only 5 functions! With this new API you won't have to worry about setting array sizes or remembering to initialize and free specific variables.  
+- Format based tokens!
+  - With format based tokens you can do a post processing typing operation to all remaining `NULLTOK` tokens
+    - This means that the format matching happens **AFTER** parsing the whole file
+  - To add a format based token, you have to provide the format validation function which takes in one `T_string` variable and returns a boolean value
+- Format validation functions
+  - Along with the format based tokens, there are a couple of pre-implemented validation functions like `IsInteger`, `IsHex`, `IsFloat`, and `IsAlphabetic`
+  - These function can be used or viewed to understand how the format validation works or used directly for your custom tokens
 
 ## How to use Toke?
 
@@ -57,12 +63,3 @@ Context* CTX=CreateContext();
 ```
 **Check the example in **`example/example.c`** where I try to parse an html file for a more "real life" application**
 
-## What is New!
-
-- Format based tokens!
-  - With format based tokens you can do a post processing typing operation to all remaining `Identifier` tokens
-    - This means that the format matching happens **AFTER** parsing the whole file
-  - To add a format based token, you have to provide the format validation function which takes in one `T_string` variable and returns a boolean value
-- Format validation functions
-  - Along with the format based tokens, there are a couple of pre-implemented validation functions like `IsInteger`, `IsHex`, `IsFloat`, and `IsAlphabetic`
-  - These function can be used or viewed to understand how the format validation works or used directly for your custom tokens

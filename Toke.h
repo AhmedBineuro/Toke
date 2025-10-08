@@ -25,7 +25,7 @@ typedef struct
 
 typedef struct
 {
-    T_String type; // Can be a custom type but everything else will be either Identifier,Space, or New line
+    T_String type; // Can be a custom type but everything else will be a null token
     T_String token;
     size_t lineNumber; // Which line was it read from in the file
 } Token;
@@ -103,13 +103,13 @@ void FitTokenArray(TokenArray *ta);
 void PrintTokenArray(const TokenArray *ta);
 /**
  * @brief Function that gets the type match of a character
- * @returns TokenType with type (Identifier by default)
+ * @returns TokenType with type (NULLTOK by default)
  */
 Token GetTokenMatch(TokenArray*ta,T_String str);
 
 /**
  * @brief Function that gets the type match of a character based on the formatting
- * @returns TokenType with type (Identifier by default)
+ * @returns TokenType with type (NULLTOK by default)
  */
 FormatToken GetFormatTokenMatch(FormatTokenArray*ta,T_String str);
 
@@ -170,11 +170,11 @@ TokenArray* TokenizeFile(Context* CTX,char* path)
     CTX->tokens=Tokenize(f,&CTX->reservedTokens);
     //Perform post processing typing
     for(int i=0;i<CTX->tokens.size;i++){
-        //Only change the identifiers since everything else has been typed
-        if(strcmp(CTX->tokens.array[i].type.str,"Identifier")!=0)
+        //Only change the null tokens since everything else has been typed
+        if(strcmp(CTX->tokens.array[i].type.str,"NULLTOK")!=0)
             continue;
         FormatToken type=GetFormatTokenMatch(&CTX->postprocTokens,CTX->tokens.array[i].token);
-        if(strcmp(type.name.str,"Identifier")!=0)
+        if(strcmp(type.name.str,"NULLTOK")!=0)
             CTX->tokens.array[i].type=type.name;
     }
     if(f!=NULL)
@@ -337,7 +337,7 @@ bool IsReservedToken(TokenArray *ta, T_String c)
 {
     for (int i = 0; i < ta->size; i++)
     {
-        if(((ta->array[i].token.size==0)&&(strcmp(ta->array[i].type.str,"Identifier")!=0))
+        if(((ta->array[i].token.size==0)&&(strcmp(ta->array[i].type.str,"NULLTOK")!=0))
         ||IsEqual(ta->array[i].token,c))
         {
             return true;
@@ -354,7 +354,7 @@ Token GetTokenMatch(TokenArray*ta,T_String str){
         }
     }
     Token t;
-    SetString(&t.type,"Identifier");
+    SetString(&t.type,"NULLTOK");
     t.token=str;
     t.lineNumber=-1;
     return t;
@@ -374,7 +374,7 @@ inline FormatToken GetFormatTokenMatch(FormatTokenArray *ta, T_String str)
         }
     }
     if(!found)
-        SetString(&t.name,"Identifier");
+        SetString(&t.name,"NULLTOK");
     return t;
 }
 
@@ -386,11 +386,11 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
     ta.capacity = 0;
     if (f == NULL)
         return ta;
-    // Add base identifier token
-    if(!HasType(reservedTokens,"Identifier"))
+    // Add base null token token
+    if(!HasType(reservedTokens,"NULLTOK"))
     {
         Token t;
-        SetString(&t.type,"Identifier");
+        SetString(&t.type,"NULLTOK");
         SetString(&t.token,"\0");
         t.lineNumber=-1;
         AddToken(reservedTokens, t);
@@ -412,14 +412,14 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
         tok.size=0;
         AddChar(&tok,c);
         t=GetTokenMatch(reservedTokens,tok);
-        if (strcmp(t.type.str,"Identifier")!=0)
+        if (strcmp(t.type.str,"NULLTOK")!=0)
         {
             t.token.size=0;
             AddChar(&t.token, c);
         }
         else
         {
-            bool endReserved=false;//Used to indicate if the end of the current Identifier is a reserved character
+            bool endReserved=false;//Used to indicate if the end of the current token is a reserved character
             T_String s;
             s.size=0;
             Token endToken; //Is used in case the string ends with a reserved token
@@ -435,7 +435,7 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
                 }
                 //Check if the last fetched character is a reserved token and if so break to not add it to the string
                 endToken=GetTokenMatch(reservedTokens, s);
-                if(strcmp(endToken.type.str,"Identifier")!=0)
+                if(strcmp(endToken.type.str,"NULLTOK")!=0)
                 {
                     endReserved=true;
                     break;
@@ -444,7 +444,7 @@ TokenArray Tokenize(FILE *f, TokenArray *reservedTokens)
                 c = fgetc(f);
             }
             Token tempType = GetTokenMatch(reservedTokens,t.token);
-            if(strcmp(tempType.type.str,"Identifier")!=0){
+            if(strcmp(tempType.type.str,"NULLTOK")!=0){
                 t=tempType;
             }
             if(endReserved){
