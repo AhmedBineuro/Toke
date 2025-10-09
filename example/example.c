@@ -35,7 +35,7 @@ int main()
 
     // You can also get the results from the CTX variable
     printf("\n----------------------\nHello from context\n----------------------\n");
-    // PrintTokenArray(&CTX->tokens);
+    PrintTokenArray(&CTX->tokens);
 
     FreeContext(CTX);
     return 0;

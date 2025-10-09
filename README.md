@@ -63,3 +63,7 @@ Context* CTX=CreateContext();
 ```
 **Check the example in **`example/example.c`** where I try to parse an html file for a more "real life" application**
 
+## Todo
+
+- [ ] Add a way to selectively ignore values (so whitespace is not ignored by default)
+- [ ] Add a way to start parsing modes (like when you iniate a string by using "")
